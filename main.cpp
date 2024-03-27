@@ -1,39 +1,65 @@
-#include <iostream> //import std;
+/*
+	Conways Game of Life
+
+	very basic - terminal style
+
+*/
+
+#include <iostream>
 #include <ctime>
 #include <cstdlib>
 
 #define XSIZE 32
 #define YSIZE 32
 
+#define DEAD	0
+#define LIVE	1
+
 class World 
 {
 	public:
+
+	//Constructor only with init random numbers
 	World (void)
 	{
-		std::srand((unsigned)std::time(0));
+		std::srand( (unsigned) std::time(0) );
 	}
-	 
-	bool get( int x, int y) 
+
+	// Conway rules are default
+	//    neigbors:        0      1     2     3     4     5     6     7     8
+	bool ruledeath[9] = { true  ,true ,false,false,true ,true ,true ,true ,true  };
+	bool rulebirth[9] = { false ,false,false,true ,false,false,false,false,false };
+
+	//boot ruledeath[9] = { true  ,true ,false,false,true ,true ,true ,true ,true  };
+	//bool rulebirth[9] = { false ,false,false,true ,false,false,false,false,false };
+
+	int living=0 ;
+	
+	char get( int x, int y) 
 	{
-		if (x<0) x=XSIZE-1 ;
+		if (x<0) x=XSIZE-1 ;	//wrap around
 		if (y<0) y=YSIZE-1 ;
+		if (x==XSIZE) x=0;
+		if (y==YSIZE) y=0;
 		
-		return ( cell[x+1][y+1] );
+		return ( cell[x][y] );
 	}
 	
-	void set( int x, int y, bool value ) 
+	void set( int x, int y, char value ) 
 	{
-		if (x<0) x=XSIZE-1 ;
+		if (x<0) x=XSIZE-1 ;	//wrap around
 		if (y<0) y=YSIZE-1 ;
+		if (x==XSIZE) x=0;
+		if (y==YSIZE) y=0;
 
-		cell[x+1][y+1]=value;
+		cell[x][y]=value;
 	}
 	
 	void zero( void )
 	{ 
-		for (int x=1 ; x<=XSIZE ; x++ )
-			for (int y=1 ; y<=YSIZE ; y++)
-				cell[x][y]=(bool)(std::rand()%2);
+		for (int x=0 ; x<XSIZE ; x++ )
+			for (int y=0 ; y<YSIZE ; y++)
+				cell[x][y]= (unsigned char) ( std::rand() % 2 );
 	}
 	
 	void print(void)
@@ -41,15 +67,17 @@ class World
 		std::cout<<"\033[;H\033[;2J";
 
 		for (int y=1 ; y<YSIZE; y++ )
-		{	std::cout<<"\n" ;
+		{	
+			std::cout<<"\n" ;
 			for (int x=1 ; x<XSIZE; x++)
 			{
-				if (cell[x][y])
+				if (cell[x][y]==LIVE)
 					std::cout<<"##";
 				else 
 					std::cout<<"..";
 			}
 		}
+
 		std::cout<<"\n";
 	}
 
@@ -58,21 +86,21 @@ class World
 		int lebend=0;
 
 		//check Nordost
-		if ( get(x-1,y-1) == true ) { lebend++ ; }
+		if ( get(x-1,y-1) == LIVE ) { lebend++ ; }
 		//check Nord
-		if ( get(x  ,y-1) == true ) { lebend++ ; }
+		if ( get(x  ,y-1) == LIVE ) { lebend++ ; }
 		//check Nordwest
-		if ( get(x+1,y-1) == true ) { lebend++ ; }
+		if ( get(x+1,y-1) == LIVE ) { lebend++ ; }
 		//check Ost
-		if ( get(x-1,y  ) == true ) { lebend++ ; }
+		if ( get(x-1,y  ) == LIVE ) { lebend++ ; }
 		//check West
-		if ( get(x+1,y  ) == true ) { lebend++ ; }
+		if ( get(x+1,y  ) == LIVE ) { lebend++ ; }
 		//check Südost
-		if ( get(x-1,y+1) == true ) { lebend++ ; }
+		if ( get(x-1,y+1) == LIVE ) { lebend++ ; }
 		//check Süd
-		if ( get(x  ,y+1) == true ) { lebend++ ; }
+		if ( get(x  ,y+1) == LIVE ) { lebend++ ; }
 		//check Südwest
-		if ( get(x+1,y+1) == true ) { lebend++ ; }
+		if ( get(x+1,y+1) == LIVE ) { lebend++ ; }
 
 		return (lebend);	
 			
@@ -82,39 +110,55 @@ class World
 	// void save (std::string filename)
 	
 	private:
-	bool cell [XSIZE+1][YSIZE+1] ;
+
+	unsigned char cell [XSIZE+1][YSIZE+1] ;
 
 } ;
 
 
+
+// main with logic (counting neigbors and decide)
+
 int main (void)
 {
 	bool quit=false;
-	bool buf[XSIZE][YSIZE];
+
+	bool buf[XSIZE][YSIZE];	//buffer with new grid
 		
 	World welt;
-	welt.zero();
+
+	welt.zero(); // fill with random
+	
 	int x,y;
 	int step=0;
 
-	while (step<1000)
+	while (step<500)
 	{
+		int n=0;
+
 		//next Generation
 		for (x=0 ; x <XSIZE ; x++) {
 			for (y=0 ; y<YSIZE ; y++) {
-				switch (welt.nachbarn(x,y))
-				{
-					case 2: buf[x][y]=welt.get(x,y) ; break ;
-					case 3: buf[x][y]=true ; break ;
-					default: buf[x][y]=false ; break ;
-				}
+				n=welt.nachbarn(x,y);
+
+				if ( welt.ruledeath[n] )
+					buf[x][y]=DEAD ;
+				else if ( welt.rulebirth[n] )
+					buf[x][y]=LIVE ;
+				else
+					buf[x][y]=welt.get(x,y);
 			}
 		}
 
-		for (x=0 ; x<XSIZE ; x++)
-			for (y=0 ; y<YSIZE ; y++)
+		welt.living=0;
+
+		for (x=0 ; x<XSIZE ; x++) {
+			for (y=0 ; y<YSIZE ; y++) {
 				welt.set(x,y,buf[x][y]);
-			
+				if (buf[x][y]==LIVE) welt.living++ ;
+			}
+		}
+
 		welt.print();
 
 		char a = std::getchar();
