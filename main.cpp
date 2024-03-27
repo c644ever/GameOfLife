@@ -15,26 +15,24 @@ class World
 	 
 	bool get( int x, int y) 
 	{
-		if (x<0) x=XSIZE ;
-		if (y<0) y=YSIZE ;
-		//if (x>XSIZE) x=XSIZE;
-		//if (y>YSIZE) x=YSIZE;
+		if (x<0) x=XSIZE-1 ;
+		if (y<0) y=YSIZE-1 ;
+		
 		return ( cell[x+1][y+1] );
 	}
 	
 	void set( int x, int y, bool value ) 
 	{
-		if (x<0) x=XSIZE ;
-		if (y<0) y=YSIZE ;
-		//if (x>XSIZE) x=XSIZE;
-		//if (y>YSIZE) x=YSIZE;
+		if (x<0) x=XSIZE-1 ;
+		if (y<0) y=YSIZE-1 ;
+
 		cell[x+1][y+1]=value;
 	}
 	
 	void zero( void )
 	{ 
-		for (int x=0 ; x<=XSIZE; x++ )
-			for (int y=0 ; y<=YSIZE; y++)
+		for (int x=1 ; x<=XSIZE ; x++ )
+			for (int y=1 ; y<=YSIZE ; y++)
 				cell[x][y]=(bool)(std::rand()%2);
 	}
 	
@@ -42,9 +40,9 @@ class World
 	{
 		std::cout<<"\033[;H\033[;2J";
 
-		for (int y=0 ; y<YSIZE; y++ )
+		for (int y=1 ; y<YSIZE; y++ )
 		{	std::cout<<"\n" ;
-			for (int x=0 ; x<XSIZE; x++)
+			for (int x=1 ; x<XSIZE; x++)
 			{
 				if (cell[x][y])
 					std::cout<<"##";
@@ -119,7 +117,7 @@ int main (void)
 			
 		welt.print();
 
-		//char a = std::getchar();
+		char a = std::getchar();
 		
 		step++;
 		
