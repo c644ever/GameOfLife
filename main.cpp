@@ -13,7 +13,7 @@
 #define YSIZE 32
 
 #define DEAD	0
-#define LIVE	1
+#define LIVE	255
 
 class World 
 {
@@ -35,7 +35,7 @@ class World
 
 	int living=0 ;
 	
-	char get( int x, int y) 
+	unsigned char get( int x, int y) 
 	{
 		if (x<0) x=XSIZE-1 ;	//wrap around
 		if (y<0) y=YSIZE-1 ;
@@ -111,7 +111,7 @@ class World
 	
 	private:
 
-	unsigned char cell [XSIZE+1][YSIZE+1] ;
+	unsigned char cell [XSIZE][YSIZE] ;
 
 } ;
 
@@ -123,7 +123,7 @@ int main (void)
 {
 	bool quit=false;
 
-	bool buf[XSIZE][YSIZE];	//buffer with new grid
+	unsigned char buf[XSIZE][YSIZE];	//buffer with new grid
 		
 	World welt;
 
@@ -137,9 +137,12 @@ int main (void)
 		int n=0;
 
 		//next Generation
-		for (x=0 ; x <XSIZE ; x++) {
-			for (y=0 ; y<YSIZE ; y++) {
+		for (x=0 ; x <XSIZE ; x++) 
+		{
+			for (y=0 ; y<YSIZE ; y++) 
+			{
 				n=welt.nachbarn(x,y);
+				buf[x][y]=DEAD;
 
 				if ( welt.ruledeath[n] )
 					buf[x][y]=DEAD ;
@@ -152,8 +155,10 @@ int main (void)
 
 		welt.living=0;
 
-		for (x=0 ; x<XSIZE ; x++) {
-			for (y=0 ; y<YSIZE ; y++) {
+		for (x=0 ; x<XSIZE ; x++) 
+		{
+			for (y=0 ; y<YSIZE ; y++) 
+			{
 				welt.set(x,y,buf[x][y]);
 				if (buf[x][y]==LIVE) welt.living++ ;
 			}
